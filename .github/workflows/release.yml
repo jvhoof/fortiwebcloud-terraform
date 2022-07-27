@@ -1,0 +1,29 @@
+name: 'FortiWeb Cloud Terraform Provider'
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  go-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.go-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+      - id: go-version
+        run: echo "::set-output name=version::$(cat ./.go-version)"
+
+  terraform-provider-release:
+    name: 'Terraform Provider Release'
+    needs: [go-version]
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v2
+    secrets:
+      gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'
+    with:
+      setup-go-version: '${{ needs.go-version.outputs.version }}'
+
